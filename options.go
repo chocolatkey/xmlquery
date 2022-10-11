@@ -5,8 +5,8 @@ import (
 )
 
 type ParserOptions struct {
-	Decoder    *DecoderOptions
-	Namespaces map[string]string
+	Decoder  *DecoderOptions
+	Prefixes map[string]string
 }
 
 func (options ParserOptions) apply(parser *parser) {

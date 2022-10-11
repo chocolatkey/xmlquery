@@ -37,7 +37,7 @@ func Parse(r io.Reader) (*Node, error) {
 
 // ParseWithOptions is like parse, but with custom options
 func ParseWithOptions(r io.Reader, options ParserOptions) (*Node, error) {
-	p := createParser(r, options.Namespaces)
+	p := createParser(r, options.Prefixes)
 	options.apply(p)
 	for {
 		_, err := p.parse()
@@ -348,7 +348,7 @@ func CreateStreamParserWithOptions(
 			return nil, fmt.Errorf("invalid streamElementFilter '%s', err: %s", streamElementFilter[0], err.Error())
 		}
 	}
-	parser := createParser(r, options.Namespaces)
+	parser := createParser(r, options.Prefixes)
 	options.apply(parser)
 	sp := &StreamParser{
 		p: parser,
