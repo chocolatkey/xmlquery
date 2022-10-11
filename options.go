@@ -4,8 +4,9 @@ import (
 	"encoding/xml"
 )
 
-type ParserOptions struct{
-	Decoder *DecoderOptions
+type ParserOptions struct {
+	Decoder    *DecoderOptions
+	Namespaces map[string]string
 }
 
 func (options ParserOptions) apply(parser *parser) {
@@ -17,7 +18,7 @@ func (options ParserOptions) apply(parser *parser) {
 // DecoderOptions implement the very same options than the standard
 // encoding/xml package. Please refer to this documentation:
 // https://golang.org/pkg/encoding/xml/#Decoder
-type DecoderOptions struct{
+type DecoderOptions struct {
 	Strict    bool
 	AutoClose []string
 	Entity    map[string]string

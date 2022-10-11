@@ -37,7 +37,7 @@ func Parse(r io.Reader) (*Node, error) {
 
 // ParseWithOptions is like parse, but with custom options
 func ParseWithOptions(r io.Reader, options ParserOptions) (*Node, error) {
-	p := createParser(r)
+	p := createParser(r, options.Namespaces)
 	options.apply(p)
 	for {
 		_, err := p.parse()
@@ -63,15 +63,22 @@ type parser struct {
 	reader              *cachedReader // Need to maintain a reference to the reader, so we can determine whether a node contains CDATA.
 }
 
-func createParser(r io.Reader) *parser {
+func createParser(r io.Reader, namespaces map[string]string) *parser {
 	reader := newCachedReader(bufio.NewReader(r))
 	p := &parser{
-		decoder:      xml.NewDecoder(reader),
-		doc:          &Node{Type: DocumentNode},
-		space2prefix: make(map[string]string),
-		level:        0,
-		reader:       reader,
+		decoder: xml.NewDecoder(reader),
+		doc:     &Node{Type: DocumentNode},
+		level:   0,
+		reader:  reader,
 	}
+
+	// Custom prefixes
+	if namespaces != nil {
+		p.space2prefix = namespaces
+	} else {
+		p.space2prefix = make(map[string]string)
+	}
+
 	// http://www.w3.org/XML/1998/namespace is bound by definition to the prefix xml.
 	p.space2prefix["http://www.w3.org/XML/1998/namespace"] = "xml"
 	p.decoder.CharsetReader = charset.NewReaderLabel
@@ -96,9 +103,9 @@ func (p *parser) parse() (*Node, error) {
 				attributes[0].Name = xml.Name{Local: "version"}
 				attributes[0].Value = "1.0"
 				node := &Node{
-					Type: DeclarationNode,
-					Data: "xml",
-					Attr: attributes,
+					Type:  DeclarationNode,
+					Data:  "xml",
+					Attr:  attributes,
 					level: 1,
 				}
 				AddChild(p.prev, node)
@@ -341,7 +348,7 @@ func CreateStreamParserWithOptions(
 			return nil, fmt.Errorf("invalid streamElementFilter '%s', err: %s", streamElementFilter[0], err.Error())
 		}
 	}
-	parser := createParser(r)
+	parser := createParser(r, options.Namespaces)
 	options.apply(parser)
 	sp := &StreamParser{
 		p: parser,
